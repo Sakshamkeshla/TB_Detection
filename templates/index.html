@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tuberculosis Detector</title>
+    <style>
+        :root { --bg: #0f172a; --panel: #111827; --text: #e5e7eb; --accent: #22c55e; --warn: #ef4444; }
+        body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, "Apple Color Emoji", "Segoe UI Emoji"; background: linear-gradient(180deg, #0b1020, #0f172a); color: var(--text); min-height: 100vh; display: grid; place-items: center; }
+        .card { width: min(680px, 92vw); background: rgba(17,24,39,0.75); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.06); border-radius: 16px; padding: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.35); }
+        h1 { margin-top: 0; font-size: 1.6rem; letter-spacing: 0.2px; }
+        form { display: grid; gap: 12px; margin-top: 8px; }
+        .file-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+        input[type=file] { padding: 10px; background: #0b1222; border: 1px dashed rgba(255,255,255,0.18); border-radius: 10px; color: var(--text); width: 100%; }
+        button { cursor: pointer; padding: 10px 16px; background: var(--accent); color: #052e16; border: none; border-radius: 10px; font-weight: 700; letter-spacing: 0.3px; }
+        .hint { font-size: 0.9rem; opacity: 0.8; }
+        .messages { margin-top: 8px; color: #fde68a; }
+        .result { margin-top: 16px; padding: 14px; border-radius: 10px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); }
+        .thumb { margin-top: 10px; max-width: 100%; border-radius: 10px; border: 1px solid rgba(255,255,255,0.06); }
+        .ok { color: var(--accent); font-weight: 700; }
+        .bad { color: var(--warn); font-weight: 700; }
+        .muted { opacity: 0.8; }
+    </style>
+    <script>
+        function validateSubmit(e){
+            const fileInput = document.getElementById('file');
+            if(!fileInput.files || fileInput.files.length === 0){
+                alert('Please select an image file.');
+                e.preventDefault();
+                return false;
+            }
+            return true;
+        }
+    </script>
+    <meta name="color-scheme" content="dark light" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🫁</text></svg>">
+  </head>
+  <body>
+    <div class="card">
+      <h1>TB Chest X-ray Classifier</h1>
+      <p class="hint">Upload a chest X-ray image. The model will predict TB vs Normal.</p>
+
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div class="messages">
+          {% for msg in messages %}
+            <div>• {{ msg }}</div>
+          {% endfor %}
+        </div>
+        {% endif %}
+      {% endwith %}
+
+      <form method="post" enctype="multipart/form-data" onsubmit="validateSubmit(event)">
+        <div class="file-row">
+          <input id="file" type="file" name="file" accept="image/png,image/jpeg,image/jpg,image/bmp" />
+          <button type="submit">Analyze X-ray</button>
+        </div>
+      </form>
+
+      {% if prediction %}
+      <div class="result">
+        {% if prediction == 'This X-ray is Normal' %}
+          <div class="ok">{{ prediction }}</div>
+        {% else %}
+          <div class="bad">{{ prediction }}</div>
+        {% endif %}
+        {% if probability %}
+          <div class="muted">Model confidence (TB probability): {{ probability }}</div>
+        {% endif %}
+        {% if filename %}
+          <img class="thumb" src="{{ url_for('static', filename='uploads/' + filename) }}" alt="Uploaded X-ray preview" />
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+  </body>
+</html>
+
+
